@@ -20,9 +20,14 @@ ufo_image = image.load("ufo.png")
 
 path = os.getcwd()
 stance_exp_images = os.listdir(path + '/Animations/Stance')
+walk_exp_images = os.listdir(path + '/Animations/Walking_Forward')
+walk_image_list = []
 stance_image_list = []
 for img in stance_exp_images:
     stance_image_list.append(transform.scale(image.load('Animations/Stance/' + img), (playerwidth, playerheight)))
+for img in walk_exp_images:
+    walk_image_list.append(transform.scale(image.load('Animations/Walking_Forward/' + img), (playerwidth, playerheight)))
+#положення наразі:
 
 
 # класи
@@ -38,26 +43,50 @@ class GameSprite(sprite.Sprite):
 
         self.images = stance_image_list
         self.k = 0
+        self.k2 = 0
         self.frames = 0
+        self.frames2 = 0
+        self.sstill = 1
+        self.swalking = 0
 
     def draw(self): #відрисовуємо спрайт у вікні
         window.blit(self.image, self.rect)
 
 class Player(GameSprite):
     def update(self): #рух спрайту
-        keys_pressed = key.get_pressed() 
+        keys_pressed = key.get_pressed()
+        if not keys_pressed[K_LEFT] and not keys_pressed[K_RIGHT]:
+            self.sstill = 1
+            self.swalking = 0
         if keys_pressed[K_LEFT] and self.rect.x > 0:
             self.rect.x -= self.speed
+            self.sstill = 0
+            self.swalking = 1
         if keys_pressed[K_RIGHT] and self.rect.x < WIDTH - 70:
             self.rect.x += self.speed
+            self.sstill = 0
+            self.swalking = 1
+        if self.sstill == 1:
+            self.stand_animations()
+        if self.swalking == 1:
+            self.walking_animations()
+    def stand_animations(self):
         self.frames += 1
         if self.frames == 5:
-            self.k += 1
-            self.frames = 0
-            print(self.k)
-            if self.k == len(stance_image_list):
-                self.k = 0
-            self.image = self.images[self.k]
+                self.k += 1
+                self.frames = 0
+                if self.k == len(stance_image_list):
+                    self.k = 0
+                self.image = self.images[self.k]
+    def walking_animations(self):
+        self.frames2 += 1
+        if self.frames2 == 5:
+                self.k2 += 1
+                self.frames2 = 0
+                if self.k2 == len(walk_image_list):
+                    self.k2 = 0
+                self.image = self.images[self.k2]
+    
 
 
             
@@ -94,7 +123,6 @@ result_text = Text("Перемога!", 350, 250, font_size = 50)
 
 # створення спрайтів
 player = Player(player_image, width = playerwidth, height = playerheight, x = 200, y = HEIGHT-150, speed= 3)
-ufos = sprite.Group() #група спрайтів
 
 
 # основні змінні для гри
@@ -118,16 +146,6 @@ while run:
         # рух спрайтів
         player.draw()
         player.update() #рух гравця
-        ufos.update()
-         #зіткнення гравця і ворогів
-        spritelist = sprite.spritecollide(player, ufos, False)
-        for collide in spritelist:
-            finish = True
-            result_text.set_text("ПРОГРАШ!")    
-        if score >= 10:
-            finish = True
-         #відрисовуємо фон
-        #відрисовуємо спрайти
     else:
         result_text.draw() # текст вкінці гри
     score_text.draw()

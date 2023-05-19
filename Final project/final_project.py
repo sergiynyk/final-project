@@ -162,7 +162,7 @@ class Player1(GameSprite):
         
         if self.sdhit == 1:
             self.hit_animations()
-        if self.skick == 1:
+        elif self.skick == 1:
             self.kick_animations()
         elif self.swalking == 1:
             self.walking_animations()
@@ -253,10 +253,7 @@ FPS = 60
 score = 0
 lost = 0
 
-last_hit_time1 = time.get_ticks()
-last_hit_time2 = time.get_ticks()
-last_hit_time3 = time.get_ticks()
-last_hit_time4 = time.get_ticks()
+last_hit_time = time.get_ticks()
 hit_interval = 1000
 
 
@@ -269,29 +266,17 @@ while run:
             run = False
         if e.type == KEYDOWN:
             if e.key == player1.hit_key and player1.sdhit != 1:
-                now_time = time.get_ticks()
-                if now_time - last_hit_time1 > hit_interval:
                     player1.sdhit = 1
-                    player1.sstill = 1
-                    player1.swalking = 1
+                    player1.k = 0
             if e.key == player2.hit_key and player2.sdhit != 1:
-                now_time = time.get_ticks()
-                if now_time - last_hit_time2 > hit_interval:
                     player2.sdhit = 1
-                    player2.sstill = 1
-                    player2.swalking = 1
+                    player2.k = 0
             if e.key == player1.kick_key and player1.skick != 1:
-                now_time = time.get_ticks()
-                if now_time - last_hit_time3 > hit_interval:
-                    player1.sdhit = 1
-                    player1.sstill = 1
-                    player1.swalking = 1
+                    player1.skick = 1
+                    player1.k = 0
             if e.key == player2.kick_key and player2.skick != 1:
-                now_time = time.get_ticks()
-                if now_time - last_hit_time4 > hit_interval:
                     player2.skick = 1
-                    player2.sstill = 1
-                    player2.swalking = 1
+                    player2.k = 0
     if not finish: # поки гра триває
         window.blit(bg_imaget, (0, 0))
         # рух спрайтів

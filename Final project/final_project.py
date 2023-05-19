@@ -41,9 +41,11 @@ path = os.getcwd()
 sstance_exp_images = os.listdir(path + '/SubzeroAnimations/Stance')
 swalk_exp_images = os.listdir(path + '/SubzeroAnimations/Walking_Forward')
 smhit_exp_images = os.listdir(path + '/SubzeroAnimations/PunchForward')
+skick_exp_images = os.listdir(path + '/SubzeroAnimations/Kick')
 scstance_exp_images = os.listdir(path + '/ScorpionAnimations/ScStance')
 scwalk_exp_images = os.listdir(path + '/ScorpionAnimations/ScWalkingForward')
 scmhit_exp_images = os.listdir(path + '/ScorpionAnimations/ScPunchForward')
+sckick_exp_images = os.listdir(path + '/ScorpionAnimations/ScKick')
 
 swalk_image_list = []
 
@@ -51,11 +53,15 @@ sstance_image_list = []
 
 smhit_image_list = []
 
+skick_image_list = []
+
 scwalk_image_list = []
 
 scstance_image_list = []
 
 scmhit_image_list = []
+
+sckick_image_list = []
 
 for img in sstance_exp_images:
     sstance_image_list.append(transform.scale(image.load('SubzeroAnimations/Stance/' + img), (playerstancewidth, playerstanceheight)))
@@ -68,23 +74,31 @@ for img in swalk_exp_images:
 for img in smhit_exp_images:
     smhit_image_list.append(transform.scale(image.load('SubzeroAnimations/PunchForward/' + img), (playerhitwidth, playerhitheight)))
 
-for img1 in scstance_exp_images:
-    new_img1 = transform.scale(image.load('ScorpionAnimations/ScStance/' + img1), (playerstancewidth, playerstanceheight))
+for img in skick_exp_images:
+    skick_image_list.append(transform.scale(image.load('SubzeroAnimations/Kick/' + img), (playerhitwidth, playerhitheight)))
+
+for img in scstance_exp_images:
+    new_img1 = transform.scale(image.load('ScorpionAnimations/ScStance/' + img), (playerstancewidth, playerstanceheight))
     mirrored_img1 = transform.flip(new_img1, True, False)
     scstance_image_list.append(mirrored_img1)
 
 
-for img2 in scwalk_exp_images:
-    new_img2 = transform.scale(image.load('ScorpionAnimations/ScWalkingForward/' + img2), (playerwalkingwidth, playerwalkingheight))
+for img in scwalk_exp_images:
+    new_img2 = transform.scale(image.load('ScorpionAnimations/ScWalkingForward/' + img), (playerwalkingwidth, playerwalkingheight))
     mirrored_img2 = transform.flip(new_img2, True, False)
     scwalk_image_list.append(mirrored_img2)
                              
 
 
-for img3 in scmhit_exp_images:
-    new_img3 = transform.scale(image.load('ScorpionAnimations/ScPunchForward/' + img3), (playerhitwidth, playerhitheight))
+for img in scmhit_exp_images:
+    new_img3 = transform.scale(image.load('ScorpionAnimations/ScPunchForward/' + img), (playerhitwidth, playerhitheight))
     mirrored_img3 = transform.flip(new_img3, True, False)
     scmhit_image_list.append(mirrored_img3)
+
+for img in sckick_exp_images:
+    new_img4 = transform.scale(image.load('ScorpionAnimations/ScKick/' + img), (playerhitwidth, playerhitheight))
+    mirrored_img4 = transform.flip(new_img4, True, False)
+    sckick_image_list.append(mirrored_img4)
 
 
 
@@ -107,16 +121,18 @@ class GameSprite(sprite.Sprite):
 
 class Player1(GameSprite):
     # в дужках передаємо лише ті змінні які різні для різних гравців - списки картинок і назви кнопок
-    def __init__(self, x, y, stance_images, walking_images, hit_images, left_key, right_key, hit_key): 
+    def __init__(self, x, y, stance_images, walking_images, hit_images, kick_images, left_key, right_key, hit_key, kick_key): 
         super().__init__(stance_images[0], playerhitwidth, playerhitheight, x, y, 3, 100)
 
         self.stance_images = stance_images # списки картинок передаємо як змінні 
         self.walking_images = walking_images # і лише ці змінні використовуємо в класі
         self.hit_images = hit_images
+        self.kick_images = kick_images
 
         self.left_key = left_key # назви кнопок для керування також передаємо як змінні
         self.right_key = right_key # і лише ці змінні використовуємо в класі, а не назви кнопок
         self.hit_key = hit_key
+        self.kick_key = kick_key
 
         self.timer = 0  
         self.k = 0 # достатньо 1 змінної k та frames ти ж одночасно лише 1 анімаціб показуєш
@@ -124,6 +140,7 @@ class Player1(GameSprite):
         self.sstill = 1
         self.swalking = 0
         self.sdhit = 0
+        self.skick = 0
 
 
     def update(self): #рух спрайту
@@ -133,7 +150,7 @@ class Player1(GameSprite):
             self.sstill = 0
             self.swalking = 1
             self.sdhit = 0
-        if keys_pressed[self.right_key] and self.rect.x < WIDTH - 70:
+        elif keys_pressed[self.right_key] and self.rect.x < WIDTH - 70:
             self.rect.x += self.speed
             self.sstill = 0
             self.swalking = 1
@@ -145,6 +162,8 @@ class Player1(GameSprite):
         
         if self.sdhit == 1:
             self.hit_animations()
+        if self.skick == 1:
+            self.kick_animations()
         elif self.swalking == 1:
             self.walking_animations()
         else:
@@ -169,7 +188,6 @@ class Player1(GameSprite):
                 if self.k >= len(self.walking_images):
                     self.k = 0
                 self.image = self.walking_images[self.k]
-
     def hit_animations(self):
         self.timer = tm.time()
         self.frames += 1 
@@ -180,6 +198,16 @@ class Player1(GameSprite):
                 self.k = 0
                 self.sdhit = 0
             self.image = self.hit_images[self.k]
+    def kick_animations(self):
+        self.timer = tm.time()
+        self.frames += 1 
+        if self.frames == 5:
+            self.k += 1
+            self.frames = 0
+            if self.k >= len(self.kick_images):
+                self.k = 0
+                self.skick = 0
+            self.image = self.kick_images[self.k]
 
 
 
@@ -213,8 +241,8 @@ result_text = Text("Перемога!", 350, 250, font_size = 50)
 
 # створення спрайтів
 
-player1 = Player1(200, HEIGHT-225, sstance_image_list, swalk_image_list, smhit_image_list, K_a, K_d, K_e)
-player2 = Player1(500, HEIGHT-225, scstance_image_list, scwalk_image_list, scmhit_image_list, K_LEFT, K_RIGHT, K_KP1)
+player1 = Player1(200, HEIGHT-225, sstance_image_list, swalk_image_list, smhit_image_list, skick_image_list, K_a, K_d, K_e, K_q)
+player2 = Player1(500, HEIGHT-225, scstance_image_list, scwalk_image_list, scmhit_image_list, sckick_image_list, K_LEFT, K_RIGHT, K_KP1, K_KP2)
 
 # основні змінні для гри
 
@@ -227,6 +255,8 @@ lost = 0
 
 last_hit_time1 = time.get_ticks()
 last_hit_time2 = time.get_ticks()
+last_hit_time3 = time.get_ticks()
+last_hit_time4 = time.get_ticks()
 hit_interval = 1000
 
 
@@ -248,6 +278,18 @@ while run:
                 now_time = time.get_ticks()
                 if now_time - last_hit_time2 > hit_interval:
                     player2.sdhit = 1
+                    player2.sstill = 1
+                    player2.swalking = 1
+            if e.key == player1.kick_key and player1.skick != 1:
+                now_time = time.get_ticks()
+                if now_time - last_hit_time3 > hit_interval:
+                    player1.sdhit = 1
+                    player1.sstill = 1
+                    player1.swalking = 1
+            if e.key == player2.kick_key and player2.skick != 1:
+                now_time = time.get_ticks()
+                if now_time - last_hit_time4 > hit_interval:
+                    player2.skick = 1
                     player2.sstill = 1
                     player2.swalking = 1
     if not finish: # поки гра триває

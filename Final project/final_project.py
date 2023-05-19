@@ -77,14 +77,14 @@ for img1 in scstance_exp_images:
 for img2 in scwalk_exp_images:
     new_img2 = transform.scale(image.load('ScorpionAnimations/ScWalkingForward/' + img2), (playerwalkingwidth, playerwalkingheight))
     mirrored_img2 = transform.flip(new_img2, True, False)
-    scstance_image_list.append(mirrored_img2)
+    scwalk_image_list.append(mirrored_img2)
                              
 
 
 for img3 in scmhit_exp_images:
     new_img3 = transform.scale(image.load('ScorpionAnimations/ScPunchForward/' + img3), (playerhitwidth, playerhitheight))
     mirrored_img3 = transform.flip(new_img3, True, False)
-    scstance_image_list.append(mirrored_img3)
+    scmhit_image_list.append(mirrored_img3)
 
 
 
@@ -106,34 +106,34 @@ class GameSprite(sprite.Sprite):
         window.blit(self.image, self.rect)
 
 class Player1(GameSprite):
-    def __init__(self, sprite_img, width, height, x, y, speed, hp, stance_images, walking_images, hit_images, stance_list, walk_list, hit_list):
-        super().__init__(sprite_img, width, height, x, y, speed, hp)
-        #self.controls1 = controls1
-        #self.controls2 = controls2
-        self.stance_images = stance_images
-        self.walking_images = walking_images
+    # в дужках передаємо лише ті змінні які різні для різних гравців - списки картинок і назви кнопок
+    def __init__(self, x, y, stance_images, walking_images, hit_images, left_key, right_key, hit_key): 
+        super().__init__(stance_images[0], playerhitwidth, playerhitheight, x, y, 3, 100)
+
+        self.stance_images = stance_images # списки картинок передаємо як змінні 
+        self.walking_images = walking_images # і лише ці змінні використовуємо в класі
         self.hit_images = hit_images
-        self.stance_list = stance_list
-        self.walk_list = walk_list
-        self.hit_list = hit_list
-        self.timer = 0
-        self.k = 0
-        self.k2 = 0
-        self.k3 = 0
+
+        self.left_key = left_key # назви кнопок для керування також передаємо як змінні
+        self.right_key = right_key # і лише ці змінні використовуємо в класі, а не назви кнопок
+        self.hit_key = hit_key
+
+        self.timer = 0  
+        self.k = 0 # достатньо 1 змінної k та frames ти ж одночасно лише 1 анімаціб показуєш
         self.frames = 0
-        self.frames2 = 0
-        self.frames3 = 0
         self.sstill = 1
         self.swalking = 0
         self.sdhit = 0
+
+
     def update(self): #рух спрайту
         keys_pressed = key.get_pressed()
-        if keys_pressed[K_LEFT] and self.rect.x > 0:
+        if keys_pressed[self.left_key] and self.rect.x > 0: # замість self.left_key підставлятимуться різні назви кнопок
             self.rect.x -= self.speed
             self.sstill = 0
             self.swalking = 1
             self.sdhit = 0
-        if keys_pressed[K_RIGHT] and self.rect.x < WIDTH - 70:
+        if keys_pressed[self.right_key] and self.rect.x < WIDTH - 70:
             self.rect.x += self.speed
             self.sstill = 0
             self.swalking = 1
@@ -149,32 +149,38 @@ class Player1(GameSprite):
             self.walking_animations()
         else:
             self.stand_animations()
+
+
     def stand_animations(self):
         self.frames += 1
         if self.frames == 5:
                 self.k += 1
                 self.frames = 0
-                if self.k == len(self.stance_list):
-                    self.k = 0
+                if self.k >= len(self.stance_images): # тут не потрібно окрмо список з назвами картинок
+                    self.k = 0                          #можна  виконаристати self.stance_images
                 self.image = self.stance_images[self.k]
+
+
     def walking_animations(self):
-        self.frames2 += 1
-        if self.frames2 == 5:
-                self.k2 += 1
-                self.frames2 = 0
-                if self.k2 == len(self.walk_list):
-                    self.k2 = 0
-                self.image = self.walking_images[self.k2]
+        self.frames += 1 # не треба змінних self.frames2 та self.k2 
+        if self.frames == 5:
+                self.k += 1
+                self.frames = 0
+                if self.k >= len(self.walking_images):
+                    self.k = 0
+                self.image = self.walking_images[self.k]
+
     def hit_animations(self):
         self.timer = tm.time()
-        self.frames3 += 1
-        if self.frames3 == 5:
-            self.k3 += 1
-            self.frames3 = 0
-            if self.k3 == len(self.hit_list):
-                self.k3 = 0
+        self.frames += 1 
+        if self.frames == 5:
+            self.k += 1
+            self.frames = 0
+            if self.k >= len(self.hit_images):
+                self.k = 0
                 self.sdhit = 0
-            self.image = self.hit_images[self.k3]
+            self.image = self.hit_images[self.k]
+
 
 
 class Text(sprite.Sprite):
@@ -207,8 +213,8 @@ result_text = Text("Перемога!", 350, 250, font_size = 50)
 
 # створення спрайтів
 
-player1 = Player1(hero_image_test, width = playerhitwidth, height = playerhitheight, x = 200, y = HEIGHT-225, speed= 3, hp = 100, sstance_image_list, swalk_image_list, smhit_image_list, sstance_image_list, swalk_image_list, smhit_image_list)
-player2 = Player1(hero_image_test, width = playerhitwidth, height = playerhitheight, x = 500, y = HEIGHT-225, speed= 3, hp = 100, scstance_image_list, scwalk_image_list, scmhit_image_list, scstance_image_list, scwalk_image_list, scmhit_image_list)
+player1 = Player1(200, HEIGHT-225, sstance_image_list, swalk_image_list, smhit_image_list, K_a, K_d, K_e)
+player2 = Player1(500, HEIGHT-225, scstance_image_list, scwalk_image_list, scmhit_image_list, K_LEFT, K_RIGHT, K_KP1)
 
 # основні змінні для гри
 
@@ -219,8 +225,10 @@ FPS = 60
 score = 0
 lost = 0
 
-last_hit_time = time.get_ticks()
+last_hit_time1 = time.get_ticks()
+last_hit_time2 = time.get_ticks()
 hit_interval = 1000
+
 
 # ігровий цикл
 
@@ -230,12 +238,18 @@ while run:
         if e.type == QUIT:
             run = False
         if e.type == KEYDOWN:
-            if e.key == K_KP1 and player1.sdhit != 1:
+            if e.key == player1.hit_key and player1.sdhit != 1:
                 now_time = time.get_ticks()
-                if now_time - last_hit_time > hit_interval:
+                if now_time - last_hit_time1 > hit_interval:
                     player1.sdhit = 1
                     player1.sstill = 1
                     player1.swalking = 1
+            if e.key == player2.hit_key and player2.sdhit != 1:
+                now_time = time.get_ticks()
+                if now_time - last_hit_time2 > hit_interval:
+                    player2.sdhit = 1
+                    player2.sstill = 1
+                    player2.swalking = 1
     if not finish: # поки гра триває
         window.blit(bg_imaget, (0, 0))
         # рух спрайтів

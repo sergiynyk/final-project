@@ -26,9 +26,11 @@ WIDTH, HEIGHT = 900, 600
 playerstancewidth, playerstanceheight = 75, 150
 playerwalkingwidth, playerwalkingheight = 100, 153
 playerhitwidth, playerhitheight = 140, 150
+playergethitwidth, playergethitheight = 90, 153
 scplayerstancewidth, scplayerstanceheight = 85, 150
 scplayerwalkingwidth, scplayerwalkingheight = 100, 153
 scplayerkickwidth, scplayerkickheight = 150, 150
+
 
 # картинка фону
 bg_image = image.load(test_image)
@@ -39,16 +41,21 @@ bg_imaget = transform.scale(bg_image, (900, 600))
 
 hero_image_test = image.load("ufo.png")
 
+full_hpbar = image.load("Props\FullLifeBar.png")
+empty_hpbar = image.load("Props\EmptyLifeBar.png")
+
 path = os.getcwd()
 
 sstance_exp_images = os.listdir(path + '/SubzeroAnimations/Stance')
 swalk_exp_images = os.listdir(path + '/SubzeroAnimations/Walking_Forward')
 smhit_exp_images = os.listdir(path + '/SubzeroAnimations/PunchForward')
 skick_exp_images = os.listdir(path + '/SubzeroAnimations/Kick')
+sgethit_exp_images = os.listdir(path + '/SubzeroAnimations/GettingHit')
 scstance_exp_images = os.listdir(path + '/ScorpionAnimations/ScStance')
 scwalk_exp_images = os.listdir(path + '/ScorpionAnimations/ScWalkingForward')
 scmhit_exp_images = os.listdir(path + '/ScorpionAnimations/ScPunchForward')
 sckick_exp_images = os.listdir(path + '/ScorpionAnimations/ScKick')
+scgethit_exp_images = os.listdir(path + '/ScorpionAnimations/ScGetHit')
 
 swalk_image_list = []
 
@@ -58,6 +65,8 @@ smhit_image_list = []
 
 skick_image_list = []
 
+sgethit_image_list = []
+
 scwalk_image_list = []
 
 scstance_image_list = []
@@ -65,6 +74,8 @@ scstance_image_list = []
 scmhit_image_list = []
 
 sckick_image_list = []
+
+scgethit_image_list = []
 
 for img in sstance_exp_images:
     sstance_image_list.append(transform.scale(image.load('SubzeroAnimations/Stance/' + img), (playerstancewidth, playerstanceheight)))
@@ -79,6 +90,9 @@ for img in smhit_exp_images:
 
 for img in skick_exp_images:
     skick_image_list.append(transform.scale(image.load('SubzeroAnimations/Kick/' + img), (playerhitwidth, playerhitheight)))
+
+for img in sgethit_exp_images:
+    sgethit_image_list.append(transform.scale(image.load('SubzeroAnimations/GettingHit/' + img), (playergethitwidth, playergethitheight)))
 
 for img in scstance_exp_images:
     new_img1 = transform.scale(image.load('ScorpionAnimations/ScStance/' + img), (scplayerstancewidth, scplayerstanceheight))
@@ -103,6 +117,11 @@ for img in sckick_exp_images:
     mirrored_img4 = transform.flip(new_img4, True, False)
     sckick_image_list.append(mirrored_img4)
 
+for img in scgethit_exp_images:
+    new_img5 = transform.scale(image.load('ScorpionAnimations/ScGetHit/' + img), (playergethitwidth, playergethitheight))
+    mirrored_img5 = transform.flip(new_img5, True, False)
+    scgethit_image_list.append(mirrored_img5)
+
 
 
 # класи
@@ -124,18 +143,20 @@ class GameSprite(sprite.Sprite):
 
 class Player1(GameSprite):
     # в дужках передаємо лише ті змінні які різні для різних гравців - списки картинок і назви кнопок
-    def __init__(self, x, y, stance_images, walking_images, hit_images, kick_images, left_key, right_key, hit_key, kick_key): 
+    def __init__(self, x, y, stance_images, walking_images, hit_images, kick_images, gethit_images, left_key, right_key, hit_key, kick_key): 
         super().__init__(stance_images[0], playerhitwidth, playerhitheight, x, y, 3, 100)
 
         self.stance_images = stance_images # списки картинок передаємо як змінні 
         self.walking_images = walking_images # і лише ці змінні використовуємо в класі
         self.hit_images = hit_images
         self.kick_images = kick_images
+        self.gethit_images = gethit_images
 
         self.left_key = left_key # назви кнопок для керування також передаємо як змінні
         self.right_key = right_key # і лише ці змінні використовуємо в класі, а не назви кнопок
         self.hit_key = hit_key
         self.kick_key = kick_key
+        self.is_hit = False
 
         self.timer = 0  
         self.k = 0 # достатньо 1 змінної k та frames ти ж одночасно лише 1 анімаціб показуєш
@@ -144,6 +165,7 @@ class Player1(GameSprite):
         self.swalking = 0
         self.sdhit = 0
         self.skick = 0
+        self.sgethit = 0
 
 
     def update(self): #рух спрайту
@@ -168,7 +190,12 @@ class Player1(GameSprite):
         elif self.skick == 1:
             self.kick_animations()
         elif self.swalking == 1:
-            self.walking_animations()
+            if self.sgethit == 1:
+                self.gethit_animations()
+            else:
+                self.walking_animations()
+        elif self.sgethit == 1:
+            self.gethit_animations()
         else:
             self.stand_animations()
 
@@ -211,6 +238,16 @@ class Player1(GameSprite):
                 self.k = 0
                 self.skick = 0
             self.image = self.kick_images[self.k]
+    def gethit_animations(self):
+        self.timer = tm.time()
+        self.frames += 1 
+        if self.frames == 5:
+            self.k += 1
+            self.frames = 0
+            if self.k >= len(self.gethit_images):
+                self.k = 0
+                self.skick = 0
+            self.image = self.gethit_images[self.k]
 
 
 
@@ -235,8 +272,14 @@ window = display.set_mode((WIDTH, HEIGHT))
 display.set_caption("Шутер")
 
 # написи для лічильників очок
+pl1hpwidth = 250
+pl2hpwidth = 250
+pl2x = 600
 
-score_text = Text("Рахунок: 0", 20, 50)
+fullhpbarpl1 = GameSprite(full_hpbar, 250, 20, 50, 50, 0, 1)
+emptyhpbarpl1 = GameSprite(empty_hpbar, 250, 20, 50, 50, 0, 1)
+fullhpbarpl2 = GameSprite(full_hpbar, 250, 20, 500, 50, 0, 1)
+emptyhpbarpl2 = GameSprite(empty_hpbar, 250, 20, 600, 50, 0, 1)
 
 # напис з результатом гри
 
@@ -244,8 +287,8 @@ result_text = Text("Переміг!", 350, 250, font_size = 50)
 
 # створення спрайтів
 
-player1 = Player1(200, HEIGHT-225, sstance_image_list, swalk_image_list, smhit_image_list, skick_image_list, K_a, K_d, K_q, K_e)
-player2 = Player1(500, HEIGHT-225, scstance_image_list, scwalk_image_list, scmhit_image_list, sckick_image_list, K_LEFT, K_RIGHT, K_KP1, K_KP2)
+player1 = Player1(100, HEIGHT-225, sstance_image_list, swalk_image_list, smhit_image_list, skick_image_list, sgethit_image_list, K_a, K_d, K_q, K_e)
+player2 = Player1(750, HEIGHT-225, scstance_image_list, scwalk_image_list, scmhit_image_list, sckick_image_list, scgethit_image_list, K_LEFT, K_RIGHT, K_KP1, K_KP2)
 
 # основні змінні для гри
 
@@ -257,7 +300,7 @@ score = 0
 lost = 0
 
 last_hit_time = time.get_ticks()
-hit_interval = 1000
+hit_interval = 1500
 
 
 # ігровий цикл
@@ -283,22 +326,75 @@ while run:
     if not finish: # поки гра триває
         window.blit(bg_imaget, (0, 0))
         # рух спрайтів
-        if tm.time() - player1.timer > 1:
-            player1.timer = 0
+        current_time = time.get_ticks()
+        if current_time - last_hit_time > hit_interval:
+            player1.is_hit = False
+            player2.is_hit = False
+            player1.sgethit = 0
+            player2.sgethit = 0
+            last_hit_time = current_time
+        if player1.sgethit == 1:
+            player1.swalking = 0
+            player1.sstil = 0
+            player1.sdhit = 0
+            player1.skick = 0
+            if player1.rect.x > 0:
+                player1.rect.x -= player1.speed - 1
+            else:
+                player1.sgethit = 0
+            
+        if player2.sgethit == 1:
+            player2.swalking = 0
+            player2.sstil = 0
+            player2.sdhit = 0
+            player2.skick = 0
+            if player2.rect.x < WIDTH - 70:
+                player2.rect.x += player2.speed - 1
+            else:
+                player2.sgethit = 0
 
+        
 
+        fullhpbarpl1 = GameSprite(full_hpbar, pl1hpwidth, 20, 50, 50, 0, 1)
+        fullhpbarpl2 = GameSprite(full_hpbar, pl2hpwidth, 20, pl2x, 50, 0, 1)
         player1.draw()
-        player1.update() #рух1 гравця
         player2.draw()
+        player1.update() #рух1 гравця
         player2.update() #рух2 гравця
+        emptyhpbarpl1.draw()
+        emptyhpbarpl2.draw()
+        fullhpbarpl1.draw()
+        fullhpbarpl2.draw()
         if player1.rect.x > player2.rect.x - 50:
             player1.rect.x -= 3
-        elif player2.rect.x < player1.rect.x - 50:
+        if player2.rect.x < player1.rect.x + 50:
             player2.rect.x += 3
-        if sprite.collide_mask(player1, player2) and player1.sdhit == 1:
-            player2.hp -=  1
-        if sprite.collide_mask(player2, player1) and player2.sdhit == 1:
-            player1.hp -=  1
+        if sprite.collide_mask(player1, player2) and player1.sdhit == 1 and not player1.is_hit:
+            last_hit_time = current_time
+            player1.is_hit = True
+            player2.hp -=  5
+            player2.sgethit = 1
+            pl2hpwidth -= 13
+            pl2x += 13
+        if sprite.collide_mask(player2, player1) and player2.sdhit == 1 and not player2.is_hit:
+            last_hit_time = current_time
+            player2.is_hit = True
+            player1.hp -=  5
+            player1.sgethit = 1
+            pl1hpwidth -= 13
+        if sprite.collide_mask(player1, player2) and player1.skick == 1 and not player1.is_hit:
+            last_hit_time = current_time
+            player1.is_hit = True
+            player2.hp -=  7
+            player2.sgethit = 1
+            pl2hpwidth -= 13
+            pl2x += 13
+        if sprite.collide_mask(player2, player1) and player2.skick == 1 and not player2.is_hit:
+            last_hit_time = current_time
+            player2.is_hit = True
+            player1.hp -=  7
+            player1.sgethit = 1
+            pl1hpwidth -= 13
         if player1.hp <= 0:
             result_text.set_text("Переміг 2 гравець!")
             finish = True

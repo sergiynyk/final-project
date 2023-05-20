@@ -26,6 +26,9 @@ WIDTH, HEIGHT = 900, 600
 playerstancewidth, playerstanceheight = 75, 150
 playerwalkingwidth, playerwalkingheight = 100, 153
 playerhitwidth, playerhitheight = 140, 150
+scplayerstancewidth, scplayerstanceheight = 85, 150
+scplayerwalkingwidth, scplayerwalkingheight = 100, 153
+scplayerkickwidth, scplayerkickheight = 150, 150
 
 # картинка фону
 bg_image = image.load(test_image)
@@ -78,13 +81,13 @@ for img in skick_exp_images:
     skick_image_list.append(transform.scale(image.load('SubzeroAnimations/Kick/' + img), (playerhitwidth, playerhitheight)))
 
 for img in scstance_exp_images:
-    new_img1 = transform.scale(image.load('ScorpionAnimations/ScStance/' + img), (playerstancewidth, playerstanceheight))
+    new_img1 = transform.scale(image.load('ScorpionAnimations/ScStance/' + img), (scplayerstancewidth, scplayerstanceheight))
     mirrored_img1 = transform.flip(new_img1, True, False)
     scstance_image_list.append(mirrored_img1)
 
 
 for img in scwalk_exp_images:
-    new_img2 = transform.scale(image.load('ScorpionAnimations/ScWalkingForward/' + img), (playerwalkingwidth, playerwalkingheight))
+    new_img2 = transform.scale(image.load('ScorpionAnimations/ScWalkingForward/' + img), (scplayerwalkingwidth, scplayerwalkingheight))
     mirrored_img2 = transform.flip(new_img2, True, False)
     scwalk_image_list.append(mirrored_img2)
                              
@@ -96,7 +99,7 @@ for img in scmhit_exp_images:
     scmhit_image_list.append(mirrored_img3)
 
 for img in sckick_exp_images:
-    new_img4 = transform.scale(image.load('ScorpionAnimations/ScKick/' + img), (playerhitwidth, playerhitheight))
+    new_img4 = transform.scale(image.load('ScorpionAnimations/ScKick/' + img), (scplayerkickwidth, scplayerkickheight))
     mirrored_img4 = transform.flip(new_img4, True, False)
     sckick_image_list.append(mirrored_img4)
 
@@ -237,11 +240,11 @@ score_text = Text("Рахунок: 0", 20, 50)
 
 # напис з результатом гри
 
-result_text = Text("Перемога!", 350, 250, font_size = 50)
+result_text = Text("Переміг!", 350, 250, font_size = 50)
 
 # створення спрайтів
 
-player1 = Player1(200, HEIGHT-225, sstance_image_list, swalk_image_list, smhit_image_list, skick_image_list, K_a, K_d, K_e, K_q)
+player1 = Player1(200, HEIGHT-225, sstance_image_list, swalk_image_list, smhit_image_list, skick_image_list, K_a, K_d, K_q, K_e)
 player2 = Player1(500, HEIGHT-225, scstance_image_list, scwalk_image_list, scmhit_image_list, sckick_image_list, K_LEFT, K_RIGHT, K_KP1, K_KP2)
 
 # основні змінні для гри
@@ -288,6 +291,20 @@ while run:
         player1.update() #рух1 гравця
         player2.draw()
         player2.update() #рух2 гравця
+        if player1.rect.x > player2.rect.x - 50:
+            player1.rect.x -= 3
+        elif player2.rect.x < player1.rect.x - 50:
+            player2.rect.x += 3
+        if sprite.collide_mask(player1, player2) and player1.sdhit == 1:
+            player2.hp -=  1
+        if sprite.collide_mask(player2, player1) and player2.sdhit == 1:
+            player1.hp -=  1
+        if player1.hp <= 0:
+            result_text.set_text("Переміг 2 гравець!")
+            finish = True
+        elif player2.hp <= 0:
+            result_text.set_text("Переміг 1 гравець!")
+            finish = True
     else:
         result_text.draw() # текст вкінці гри
 

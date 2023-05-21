@@ -9,6 +9,14 @@ font.init()
 
 mixer.init()
 
+punch_sound = mixer.Sound("Sounds/Punch.mp3")
+ui_sound = mixer.Sound("Sounds/UiSound.mp3")
+punchgethit_sound = mixer.Sound("Sounds/PunchGetHit.mp3")
+kickgethit_sound = mixer.Sound("Sounds/KickGetHit.mp3")
+parried_sound = mixer.Sound("Sounds/PunchParried.mp3")
+fightstart_sound = mixer.Sound("Sounds/FightStartSound.mp3")
+finishhim_sound = mixer.Sound("Sounds/FinishHimSound.mp3")
+
 # розміри вікна
 test_image = None
 
@@ -55,11 +63,13 @@ swalk_exp_images = os.listdir(path + '/SubzeroAnimations/Walking_Forward')
 smhit_exp_images = os.listdir(path + '/SubzeroAnimations/PunchForward')
 skick_exp_images = os.listdir(path + '/SubzeroAnimations/Kick')
 sgethit_exp_images = os.listdir(path + '/SubzeroAnimations/GettingHit')
+sblocking_exp_images = os.listdir(path + '/SubzeroAnimations/Blocking')
 scstance_exp_images = os.listdir(path + '/ScorpionAnimations/ScStance')
 scwalk_exp_images = os.listdir(path + '/ScorpionAnimations/ScWalkingForward')
 scmhit_exp_images = os.listdir(path + '/ScorpionAnimations/ScPunchForward')
 sckick_exp_images = os.listdir(path + '/ScorpionAnimations/ScKick')
 scgethit_exp_images = os.listdir(path + '/ScorpionAnimations/ScGetHit')
+scblocking_exp_images = os.listdir(path + '/ScorpionAnimations/ScBlocking')
 
 swalk_image_list = []
 
@@ -71,6 +81,8 @@ skick_image_list = []
 
 sgethit_image_list = []
 
+sblocking_image_list = []
+
 scwalk_image_list = []
 
 scstance_image_list = []
@@ -80,6 +92,8 @@ scmhit_image_list = []
 sckick_image_list = []
 
 scgethit_image_list = []
+
+scblocking_image_list = []
 
 for img in sstance_exp_images:
     sstance_image_list.append(transform.scale(image.load('SubzeroAnimations/Stance/' + img), (playerstancewidth, playerstanceheight)))
@@ -97,6 +111,9 @@ for img in skick_exp_images:
 
 for img in sgethit_exp_images:
     sgethit_image_list.append(transform.scale(image.load('SubzeroAnimations/GettingHit/' + img), (playergethitwidth, playergethitheight)))
+
+for img in sblocking_exp_images:
+    sblocking_image_list.append(transform.scale(image.load('SubzeroAnimations/Blocking/' + img), (playerstancewidth, playerstanceheight)))
 
 for img in scstance_exp_images:
     new_img1 = transform.scale(image.load('ScorpionAnimations/ScStance/' + img), (scplayerstancewidth, scplayerstanceheight))
@@ -125,6 +142,10 @@ for img in scgethit_exp_images:
     new_img5 = transform.scale(image.load('ScorpionAnimations/ScGetHit/' + img), (playergethitwidth, playergethitheight))
     mirrored_img5 = transform.flip(new_img5, True, False)
     scgethit_image_list.append(mirrored_img5)
+for img in scblocking_exp_images:
+    new_img6 = transform.scale(image.load('ScorpionAnimations/ScBlocking/' + img), (playerstancewidth, playerstanceheight))
+    mirrored_img6 = transform.flip(new_img6, True, False)
+    scblocking_image_list.append(mirrored_img6)
 
 
 
@@ -147,7 +168,7 @@ class GameSprite(sprite.Sprite):
 
 class Player1(GameSprite):
     # в дужках передаємо лише ті змінні які різні для різних гравців - списки картинок і назви кнопок
-    def __init__(self, x, y, stance_images, walking_images, hit_images, kick_images, gethit_images, left_key, right_key, hit_key, kick_key): 
+    def __init__(self, x, y, stance_images, walking_images, hit_images, kick_images, gethit_images, blocking_images, left_key, right_key, hit_key, kick_key, blocking_key): 
         super().__init__(stance_images[0], playerhitwidth, playerhitheight, x, y, 3, 100)
 
         self.stance_images = stance_images # списки картинок передаємо як змінні 
@@ -155,11 +176,13 @@ class Player1(GameSprite):
         self.hit_images = hit_images
         self.kick_images = kick_images
         self.gethit_images = gethit_images
+        self.blocking_images = blocking_images
 
         self.left_key = left_key # назви кнопок для керування також передаємо як змінні
         self.right_key = right_key # і лише ці змінні використовуємо в класі, а не назви кнопок
         self.hit_key = hit_key
         self.kick_key = kick_key
+        self.blocking_key = blocking_key
         self.is_hit = False
 
         self.timer = 0  
@@ -170,6 +193,7 @@ class Player1(GameSprite):
         self.sdhit = 0
         self.skick = 0
         self.sgethit = 0
+        self.sblocking = 0
 
 
     def update(self): #рух спрайту
@@ -177,11 +201,13 @@ class Player1(GameSprite):
         if keys_pressed[self.left_key] and self.rect.x > 0 and sstartfight == True: # замість self.left_key підставлятимуться різні назви кнопок
             self.rect.x -= self.speed
             self.sstill = 0
+            self.sblocking = 0
             self.swalking = 1
             self.sdhit = 0
         elif keys_pressed[self.right_key] and self.rect.x < player2.rect.centerx and self.rect.x < WIDTH - 70 and sstartfight == True:
             self.rect.x += self.speed
             self.sstill = 0
+            self.sblocking = 0
             self.swalking = 1
             self.sdhit = 0
         else:
@@ -200,6 +226,8 @@ class Player1(GameSprite):
                 self.walking_animations()
         elif self.sgethit == 1:
             self.gethit_animations()
+        elif self.sblocking == 1:
+            self.blocking_animations()
         else:
             self.stand_animations()
 
@@ -223,7 +251,6 @@ class Player1(GameSprite):
                     self.k = 0
                 self.image = self.walking_images[self.k]
     def hit_animations(self):
-        self.timer = tm.time()
         self.frames += 1 
         if self.frames == 5:
             self.k += 1
@@ -233,7 +260,6 @@ class Player1(GameSprite):
                 self.sdhit = 0
             self.image = self.hit_images[self.k]
     def kick_animations(self):
-        self.timer = tm.time()
         self.frames += 1 
         if self.frames == 5:
             self.k += 1
@@ -243,7 +269,6 @@ class Player1(GameSprite):
                 self.skick = 0
             self.image = self.kick_images[self.k]
     def gethit_animations(self):
-        self.timer = tm.time()
         self.frames += 1 
         if self.frames == 5:
             self.k += 1
@@ -252,6 +277,14 @@ class Player1(GameSprite):
                 self.k = 0
                 self.skick = 0
             self.image = self.gethit_images[self.k]
+    def blocking_animations(self):
+        self.frames += 1 # не треба змінних self.frames2 та self.k2 
+        if self.frames == 5:
+                self.k += 1
+                self.frames = 0
+                if self.k >= len(self.blocking_images):
+                    self.k = 0
+                self.image = self.blocking_images[self.k]
 
 class Player2(Player1):
     def update(self): #рух спрайту
@@ -260,11 +293,13 @@ class Player2(Player1):
             self.rect.x -= self.speed
             self.sstill = 0
             self.swalking = 1
+            self.sblocking = 0
             self.sdhit = 0
         elif keys_pressed[self.right_key] and self.rect.x < WIDTH - 70 and sstartfight == True:
             self.rect.x += self.speed
             self.sstill = 0
             self.swalking = 1
+            self.sblocking = 0
             self.sdhit = 0
         else:
             self.swalking = 0
@@ -272,17 +307,24 @@ class Player2(Player1):
 
         
         if self.sdhit == 1:
+            self.sblocking = 0
             self.swalking = 0
             self.hit_animations()
         elif self.skick == 1:
+            self.sblocking = 0
             self.kick_animations()
         elif self.swalking == 1:
             if self.sgethit == 1:
+                self.sblocking = 0
                 self.gethit_animations()
             else:
+                self.sblocking = 0
                 self.walking_animations()
         elif self.sgethit == 1:
+            self.sblocking = 0
             self.gethit_animations()
+        elif self.sblocking == 1:
+            self.blocking_animations()
         else:
             self.stand_animations()
 
@@ -325,12 +367,12 @@ menuctext = GameSprite(Menu_startprop, 900, 600, 0, 0, 0, 1)
 
 # напис з результатом гри
 
-result_text = Text("Переміг!", 350, 250, font_size = 50)
+result_text = Text("Wins!", 250, 250, font_size = 50)
 
 # створення спрайтів
 
-player1 = Player1(100, HEIGHT-225, sstance_image_list, swalk_image_list, smhit_image_list, skick_image_list, sgethit_image_list, K_a, K_d, K_q, K_e)
-player2 = Player2(750, HEIGHT-225, scstance_image_list, scwalk_image_list, scmhit_image_list, sckick_image_list, scgethit_image_list, K_LEFT, K_RIGHT, K_KP1, K_KP2)
+player1 = Player1(100, HEIGHT-225, sstance_image_list, swalk_image_list, smhit_image_list, skick_image_list, sgethit_image_list, sblocking_image_list, K_a, K_d, K_q, K_e, K_f)
+player2 = Player2(750, HEIGHT-225, scstance_image_list, scwalk_image_list, scmhit_image_list, sckick_image_list, scgethit_image_list, scblocking_image_list, K_LEFT, K_RIGHT, K_KP1, K_KP2, K_KP0)
 
 # основні змінні для гри
 
@@ -343,11 +385,20 @@ lost = 0
 sstartfight = False
 fightstartanim = False
 endoffighttext = False
+finhim = True
+abletoblock1 = True
+abletoblock2 = True
 
+punchdmg = 5
+kickdmg = 7
+
+last_block_time1 = time.get_ticks()
+last_block_time2 = time.get_ticks()
 last_hit_time = time.get_ticks()
 prefight_timec = time.get_ticks()
-pre_fight_interval = 3000
+pre_fight_interval = 5000
 hit_interval = 1500
+block_interval = 750
 
 
 # ігровий цикл
@@ -359,24 +410,54 @@ while run:
             run = False
         if e.type == KEYDOWN:
             if e.key == player1.hit_key and player1.sdhit != 1:
+                    if player1.swalking == 1:
+                        pass
+                    else:
+                        punch_sound.play()
                     player1.sdhit = 1
+                    player1.sblocking = 0
                     player1.k = 0
             if e.key == player2.hit_key and player2.sdhit != 1:
+                    if player2.swalking == 1:
+                        pass
+                    else:
+                        punch_sound.play()
                     player2.sdhit = 1
+                    player2.sblocking = 0
                     player2.k = 0
             if e.key == player1.kick_key and player1.skick != 1:
+                    if player1.swalking == 1:
+                        pass
+                    else:
+                        punch_sound.play()
                     player1.skick = 1
+                    player1.sblocking = 0
                     player1.k = 0
             if e.key == player2.kick_key and player2.skick != 1:
+                    if player2.swalking == 1:
+                        pass
+                    else:
+                        punch_sound.play()
                     player2.skick = 1
+                    player2.sblocking = 0
                     player2.k = 0
+            if e.key == player1.blocking_key and player1.sblocking != 1 and abletoblock1 == True:
+                    player1.sblocking = 1
+                    last_block_time1 = time.get_ticks()
+                    abletoblock1 = False
+            if e.key == player2.blocking_key and player1.sblocking != 1 and abletoblock2 == True:
+                    player2.sblocking = 1
+                    last_block_time2 = time.get_ticks()
+                    abletoblock2 = False
             if not sstartfight:
                 if e.key == K_SPACE:
                     prefight_timec = time.get_ticks()
                     sstartfight = True
                     finish = False
+                    ui_sound.play()
                     fightstartanim = True
-    menuctext.draw()
+    if finish == None:
+        menuctext.draw()
     if fightstartanim == True:
         window.blit(bg_imaget, (0, 0))
         player1.draw()
@@ -387,7 +468,9 @@ while run:
         player2.speed = 0
         startanimtimer = time.get_ticks()
         if startanimtimer - prefight_timec > pre_fight_interval:
+            fightstart_sound.play()
             fightstartanim = False
+
     if sstartfight == True and fightstartanim == False:
         player1.speed = 3
         player2.speed = 3
@@ -401,7 +484,11 @@ while run:
                 player1.sgethit = 0
                 player2.sgethit = 0
                 last_hit_time = current_time
-            if player1.sgethit == 1:
+            if current_time - last_block_time1 > block_interval:
+                abletoblock1 = True
+            if current_time - last_block_time2 > block_interval:
+                abletoblock2 = True
+            if player1.sgethit == 1 and player1.sblocking == 0:
                 player1.swalking = 0
                 player1.sstil = 0
                 player1.sdhit = 0
@@ -416,7 +503,7 @@ while run:
                 player2.sstil = 0
                 player2.sdhit = 0
                 player2.skick = 0
-                if player2.rect.x < WIDTH - 70:
+                if player2.rect.x < WIDTH - 70 and player2.sblocking == 0:
                     player2.rect.x += player2.speed - 1
                 else:
                     player2.sgethit = 0
@@ -449,34 +536,70 @@ while run:
             if sprite.collide_mask(player1, player2) and player1.sdhit == 1 and not player1.is_hit:
                 last_hit_time = current_time
                 player1.is_hit = True
-                player2.hp -=  5
-                player2.sgethit = 1
-                pl2hpwidth -= 13
-                pl2x += 13
+                if player2.sblocking == 1:
+                    parried_sound.play()
+                    player2.hp -=  punchdmg - 4
+                    player2.sblocking = 0
+                    pl2hpwidth -= 2
+                    pl2x += 2
+                else:
+                    punchgethit_sound.play()
+                    player2.hp -=  punchdmg
+                    pl2hpwidth -= 13
+                    pl2x += 13
+                    player2.sgethit = 1
             if sprite.collide_mask(player2, player1) and player2.sdhit == 1 and not player2.is_hit:
                 last_hit_time = current_time
                 player2.is_hit = True
-                player1.hp -=  5
-                player1.sgethit = 1
-                pl1hpwidth -= 13
+                if player1.sblocking == 1:
+                    parried_sound.play()
+                    player1.hp -=  punchdmg - 4
+                    player1.sblocking = 0
+                    pl1hpwidth -= 2
+                else:
+                    punchgethit_sound.play()
+                    player1.hp -=  punchdmg
+                    pl1hpwidth -= 13
+                    player1.sgethit = 1
             if sprite.collide_mask(player1, player2) and player1.skick == 1 and not player1.is_hit:
                 last_hit_time = current_time
                 player1.is_hit = True
-                player2.hp -=  7
-                player2.sgethit = 1
-                pl2hpwidth -= 13
-                pl2x += 13
+                if player2.sblocking == 1:
+                    parried_sound.play()
+                    player2.hp -=  kickdmg - 6
+                    player2.sblocking = 0
+                    pl2hpwidth -= 2
+                    pl2x += 2
+                else:
+                    kickgethit_sound.play()
+                    player2.hp -=  kickdmg
+                    pl2hpwidth -= 13
+                    pl2x += 13
+                    player2.sgethit = 1
             if sprite.collide_mask(player2, player1) and player2.skick == 1 and not player2.is_hit:
                 last_hit_time = current_time
                 player2.is_hit = True
-                player1.hp -=  7
-                player1.sgethit = 1
-                pl1hpwidth -= 13
+                if player1.sblocking == 1:
+                    parried_sound.play()
+                    player1.hp -=  kickdmg - 6
+                    player1.sblocking = 0
+                    pl1hpwidth -= 2
+                else:
+                    kickgethit_sound.play()
+                    player1.hp -=  kickdmg
+                    pl1hpwidth -= 13
+                    player1.sgethit = 1
+            if player1.hp <= 5 and finhim == True:
+                finishhim_sound.play()
+                finhim = False
+            elif player2.hp <= 5 and finhim == True:
+                finishhim_sound.play()
+                finhim = False
             if player1.hp <= 0:
-                result_text.set_text("Переміг 2 гравець!")
+                result_text.set_text("Player 2, Wins!")
                 finish = True
             elif player2.hp <= 0:
-                result_text.set_text("Переміг 1 гравець!")
+                result_text.set_text("Player 1, Wins!")
                 finish = True
         else:
             result_text.draw() # текст вкінці гри

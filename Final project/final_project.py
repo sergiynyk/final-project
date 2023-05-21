@@ -9,6 +9,10 @@ font.init()
 
 mixer.init()
 
+mixer.music.load('Sounds/MortalKombatTheme.mp3')
+mixer.music.set_volume(0.1)
+mixer.music.play(loops=-1)
+
 punch_sound = mixer.Sound("Sounds/Punch.mp3")
 kick_sound = mixer.Sound("Sounds/Kick_Sound.mp3")
 ui_sound = mixer.Sound("Sounds/UiSound.mp3")
@@ -17,15 +21,19 @@ kickgethit_sound = mixer.Sound("Sounds/KickGetHit.mp3")
 parried_sound = mixer.Sound("Sounds/PunchParried.mp3")
 fightstart_sound = mixer.Sound("Sounds/FightStartSound.mp3")
 finishhim_sound = mixer.Sound("Sounds/FinishHimSound.mp3")
+peopletalking = mixer.Sound("Sounds/PeopleTalking.mp3")
+
+peopletalking.set_volume(0.02)
 
 # розміри вікна
 test_image = None
 
-map_get = randint(3, 4)
+map_get = randint(2, 4)
 if map_get == 2:
     test_image = "Maps/map2.png"
 elif map_get == 3:
     test_image = "Maps/map3.png"
+    peopletalking.play(loops=-1) 
 elif map_get == 4:
     test_image = "Maps/map4.png"
 

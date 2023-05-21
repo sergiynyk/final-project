@@ -10,7 +10,7 @@ font.init()
 mixer.init()
 
 mixer.music.load('Sounds/MortalKombatTheme.mp3')
-mixer.music.set_volume(0.1)
+mixer.music.set_volume(0.05)
 mixer.music.play(loops=-1)
 
 punch_sound = mixer.Sound("Sounds/Punch.mp3")

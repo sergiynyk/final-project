@@ -348,7 +348,7 @@ class Text(sprite.Sprite):
 # створення вікна
 
 window = display.set_mode((WIDTH, HEIGHT))
-display.set_caption("Шутер")
+display.set_caption("Бійки В 2д")
 
 # написи для лічильників очок
 pl1hpwidth = 250

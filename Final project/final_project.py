@@ -10,6 +10,7 @@ font.init()
 mixer.init()
 
 punch_sound = mixer.Sound("Sounds/Punch.mp3")
+kick_sound = mixer.Sound("Sounds/Kick_Sound.mp3")
 ui_sound = mixer.Sound("Sounds/UiSound.mp3")
 punchgethit_sound = mixer.Sound("Sounds/PunchGetHit.mp3")
 kickgethit_sound = mixer.Sound("Sounds/KickGetHit.mp3")
@@ -198,13 +199,13 @@ class Player1(GameSprite):
 
     def update(self): #рух спрайту
         keys_pressed = key.get_pressed()
-        if keys_pressed[self.left_key] and self.rect.x > 0 and sstartfight == True: # замість self.left_key підставлятимуться різні назви кнопок
+        if keys_pressed[self.left_key] and self.rect.x > 0 and sstartfight == True and self.sgethit == 0: # замість self.left_key підставлятимуться різні назви кнопок
             self.rect.x -= self.speed
             self.sstill = 0
             self.sblocking = 0
             self.swalking = 1
             self.sdhit = 0
-        elif keys_pressed[self.right_key] and self.rect.x < player2.rect.centerx and self.rect.x < WIDTH - 70 and sstartfight == True:
+        elif keys_pressed[self.right_key] and self.rect.x < player2.rect.centerx and self.rect.x < WIDTH - 70 and sstartfight == True and self.sgethit == 0:
             self.rect.x += self.speed
             self.sstill = 0
             self.sblocking = 0
@@ -289,13 +290,13 @@ class Player1(GameSprite):
 class Player2(Player1):
     def update(self): #рух спрайту
         keys_pressed = key.get_pressed()
-        if keys_pressed[self.left_key] and self.rect.x > player1.rect.centerx and self.rect.x > 0 and sstartfight == True: # замість self.left_key підставлятимуться різні назви кнопок
+        if keys_pressed[self.left_key] and self.rect.x > player1.rect.centerx and self.rect.x > 0 and sstartfight == True and self.sgethit == 0: # замість self.left_key підставлятимуться різні назви кнопок
             self.rect.x -= self.speed
             self.sstill = 0
             self.swalking = 1
             self.sblocking = 0
             self.sdhit = 0
-        elif keys_pressed[self.right_key] and self.rect.x < WIDTH - 70 and sstartfight == True:
+        elif keys_pressed[self.right_key] and self.rect.x < WIDTH - 70 and sstartfight == True and self.sgethit == 0:
             self.rect.x += self.speed
             self.sstill = 0
             self.swalking = 1
@@ -355,7 +356,7 @@ pl1hpwidth = 250
 pl2hpwidth = 250
 pl2x = 600
 
-fullhpbarpl1 = GameSprite(full_hpbar, 250, 20, 50, 50, 0, 1)
+fullhpbarpl1 = GameSprite(full_hpbar, 250, 20, 50, 50, 0, 1) 
 emptyhpbarpl1 = GameSprite(empty_hpbar, 250, 20, 50, 50, 0, 1)
 fullhpbarpl2 = GameSprite(full_hpbar, 250, 20, 500, 50, 0, 1)
 emptyhpbarpl2 = GameSprite(empty_hpbar, 250, 20, 600, 50, 0, 1)
@@ -429,7 +430,7 @@ while run:
                     if player1.swalking == 1:
                         pass
                     else:
-                        punch_sound.play()
+                        kick_sound.play()
                     player1.skick = 1
                     player1.sblocking = 0
                     player1.k = 0
@@ -437,7 +438,7 @@ while run:
                     if player2.swalking == 1:
                         pass
                     else:
-                        punch_sound.play()
+                        kick_sound.play()
                     player2.skick = 1
                     player2.sblocking = 0
                     player2.k = 0
